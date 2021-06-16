@@ -571,7 +571,11 @@ const slice = createSlice({
       state.recipient.nickname = action.payload.nickname;
       state.draftTransaction.id = action.payload.id;
       state.draftTransaction.txParams.from = action.payload.from;
-      slice.caseReducers.updateDraftTransaction(state);
+      if (state.asset.type === ASSET_TYPES.NATIVE) {
+        slice.caseReducers.updateDraftTransaction(state);
+      } else {
+        slice.caseReducers.validateSendState(state);
+      }
     },
     /**
      * gasTotal is computed based on gasPrice and gasLimit and set in state
