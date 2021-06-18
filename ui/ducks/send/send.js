@@ -7,6 +7,7 @@ import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { debounce } from 'lodash';
 import {
   conversionGreaterThan,
+  conversionUtil,
   multiplyCurrencies,
   subtractCurrencies,
 } from '../../helpers/utils/conversion-util';
@@ -30,6 +31,7 @@ import {
   isTokenBalanceSufficient,
 } from '../../pages/send/send.utils';
 import {
+  getAddressBookEntry,
   getAdvancedInlineGasShown,
   getCurrentChainId,
   getGasPriceInHexWei,
@@ -60,8 +62,13 @@ import {
   QR_CODE_DETECTED,
   SELECTED_ACCOUNT_CHANGED,
   ACCOUNT_CHANGED,
+  ADDRESS_BOOK_UPDATED,
 } from '../../store/actionConstants';
-import { calcTokenAmount } from '../../helpers/utils/token-util';
+import {
+  calcTokenAmount,
+  getTokenAddressParam,
+  getTokenValueParam,
+} from '../../helpers/utils/token-util';
 import {
   checkExistingAddresses,
   isDefaultMetaMaskChain,
@@ -261,7 +268,7 @@ async function estimateGasLimitForSend({
   }
 }
 
-async function getERC20Balance(token, accountAddress) {
+export async function getERC20Balance(token, accountAddress) {
   const contract = global.eth.contract(abi).at(token.address);
   const usersToken = (await contract?.balanceOf(accountAddress)) ?? null;
   if (!usersToken) {
@@ -742,6 +749,8 @@ const slice = createSlice({
           isOriginContractAddress(recipient.userInput, asset.details.address)
         ) {
           recipient.error = CONTRACT_ADDRESS_ERROR;
+        } else {
+          recipient.error = null;
         }
 
         if (
@@ -750,6 +759,8 @@ const slice = createSlice({
             checkExistingAddresses(recipient.userInput, tokens))
         ) {
           recipient.warning = KNOWN_RECIPIENT_ADDRESS_WARNING;
+        } else {
+          recipient.warning = null;
         }
       }
     },
@@ -893,6 +904,18 @@ const slice = createSlice({
           slice.caseReducers.validateSendState(state);
         }
       })
+      .addCase(ADDRESS_BOOK_UPDATED, (state, action) => {
+        // When the address book updates from background state changes we need
+        // to check to see if an entry exists for the current address or if the
+        // entry changed.
+        const { addressBook } = action.payload;
+        if (
+          addressBook[state.recipient.address] &&
+          state.recipient.nickname.length === 0
+        ) {
+          state.recipient.nickname = addressBook[state.recipient.address].name;
+        }
+      })
       .addCase(initializeSendState.pending, (state) => {
         // when we begin initializing state, which can happen when switching
         // chains even after loading the send flow, we need to temporarily
@@ -982,7 +1005,6 @@ const { actions, reducer } = slice;
 export default reducer;
 
 const {
-  editTransaction,
   useBasicGasFields,
   useCustomGasFee,
   updateGasLimit,
@@ -993,7 +1015,6 @@ const {
 } = actions;
 
 export {
-  editTransaction,
   useBasicGasFields,
   useCustomGasFee,
   updateGasLimit,
@@ -1134,7 +1155,7 @@ export function updateRecipient({ address, nickname }) {
 export function resetRecipientInput() {
   return async (dispatch) => {
     await dispatch(updateRecipientUserInput(''));
-    await dispatch(updateRecipient({ address: null, nickname: null }));
+    await dispatch(updateRecipient({ address: '', nickname: '' }));
     await dispatch(resetResolution());
     await dispatch(validateRecipientUserInput());
   };
@@ -1241,6 +1262,76 @@ export function signTransaction() {
         }
       });
       dispatch(showConfTxPage());
+    }
+  };
+}
+
+export function editTransaction(
+  assetType,
+  transactionId,
+  tokenData,
+  assetDetails,
+) {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const unapprovedTransactions = getUnapprovedTxs(state);
+    const transaction = unapprovedTransactions[transactionId];
+    const { txParams } = transaction;
+    if (assetType === ASSET_TYPES.NATIVE) {
+      const {
+        from,
+        gas: gasLimit,
+        gasPrice,
+        to: address,
+        value: amount,
+      } = txParams;
+      const nickname = getAddressBookEntry(state, address)?.name ?? '';
+      await dispatch(
+        actions.editTransaction({
+          id: transactionId,
+          gasLimit,
+          gasPrice,
+          from,
+          amount,
+          address,
+          nickname,
+        }),
+      );
+    } else if (!tokenData || !assetDetails) {
+      throw new Error(
+        `send/editTransaction dispatched with assetType 'TOKEN' but missing assetData or assetDetails parameter`,
+      );
+    } else {
+      const { from, to: tokenAddress, gas: gasLimit, gasPrice } = txParams;
+      const tokenAmountInDec = getTokenValueParam(tokenData);
+      const address = getTokenAddressParam(tokenData);
+      const nickname = getAddressBookEntry(state, address)?.name ?? '';
+
+      const tokenAmountInHex = addHexPrefix(
+        conversionUtil(tokenAmountInDec, {
+          fromNumericBase: 'dec',
+          toNumericBase: 'hex',
+        }),
+      );
+
+      await dispatch(
+        updateSendAsset({
+          type: ASSET_TYPES.TOKEN,
+          details: { ...assetDetails, address: tokenAddress },
+        }),
+      );
+
+      await dispatch(
+        actions.editTransaction({
+          id: transactionId,
+          gasLimit,
+          gasPrice,
+          from,
+          amount: tokenAmountInHex,
+          address,
+          nickname,
+        }),
+      );
     }
   };
 }
