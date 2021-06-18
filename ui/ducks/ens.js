@@ -48,39 +48,39 @@ const slice = createSlice({
   name,
   initialState,
   reducers: {
-    processEnsError: (state, action) => {
-      const { ensName, network, reason } = action.payload;
-      if (
-        isValidDomainName(ensName) &&
-        reason.message === 'ENS name not defined.'
-      ) {
-        state.error =
-          network === MAINNET_NETWORK_ID
-            ? ENS_NO_ADDRESS_FOR_NAME
-            : ENS_NOT_FOUND_ON_NETWORK;
-      } else if (reason.message === 'Illegal Character for ENS.') {
-        state.error = ENS_ILLEGAL_CHARACTER;
-      } else {
-        log.error(reason);
-        state.error = ENS_UNKNOWN_ERROR;
-      }
-    },
-    processEnsResult: (state, action) => {
-      if (state.resolution === BURN_ADDRESS) {
-        state.error = ENS_NO_ADDRESS_FOR_NAME;
-      } else if (state.resolution === ZERO_X_ERROR_ADDRESS) {
-        state.error = ENS_REGISTRATION_ERROR;
-      } else {
-        state.resolution = action.payload;
-        state.error = null;
-      }
-      if (
-        isValidDomainName(state.resolution) &&
-        isConfusing(state.resolution)
-      ) {
-        state.warning = CONFUSING_ENS_ERROR;
-      } else {
-        state.warning = null;
+    ensLookup: (state, action) => {
+      // first clear out the previous state
+      state.resolution = null;
+      state.error = null;
+      state.warning = null;
+      const { address, ensName, error, network } = action.payload;
+
+      if (error) {
+        if (
+          isValidDomainName(ensName) &&
+          error.message === 'ENS name not defined.'
+        ) {
+          state.error =
+            network === MAINNET_NETWORK_ID
+              ? ENS_NO_ADDRESS_FOR_NAME
+              : ENS_NOT_FOUND_ON_NETWORK;
+        } else if (error.message === 'Illegal Character for ENS.') {
+          state.error = ENS_ILLEGAL_CHARACTER;
+        } else {
+          log.error(error);
+          state.error = ENS_UNKNOWN_ERROR;
+        }
+      } else if (address) {
+        if (address === BURN_ADDRESS) {
+          state.error = ENS_NO_ADDRESS_FOR_NAME;
+        } else if (address === ZERO_X_ERROR_ADDRESS) {
+          state.error = ENS_REGISTRATION_ERROR;
+        } else {
+          state.resolution = address;
+        }
+        if (isValidDomainName(address) && isConfusing(address)) {
+          state.warning = CONFUSING_ENS_ERROR;
+        }
       }
     },
     enableEnsLookup: (state, action) => {
@@ -121,8 +121,7 @@ export default reducer;
 
 const {
   disableEnsLookup,
-  processEnsError,
-  processEnsResult,
+  ensLookup,
   enableEnsLookup,
   resetResolution,
 } = actions;
@@ -163,16 +162,24 @@ export function lookupEnsName(ensName) {
       await dispatch(resetResolution());
     } else {
       log.info(`ENS attempting to resolve name: ${trimmedEnsName}`);
+      let address;
+      let error;
       try {
-        const address = await ens.lookup(trimmedEnsName);
-        await dispatch(processEnsResult(address));
-      } catch (reason) {
-        const chainId = getCurrentChainId(state);
-        const network = CHAIN_ID_TO_NETWORK_ID_MAP[chainId];
-        await dispatch(
-          processEnsError({ ensName: trimmedEnsName, reason, network }),
-        );
+        address = await ens.lookup(trimmedEnsName);
+      } catch (err) {
+        error = err;
       }
+      const chainId = getCurrentChainId(state);
+      const network = CHAIN_ID_TO_NETWORK_ID_MAP[chainId];
+      await dispatch(
+        ensLookup({
+          ensName: trimmedEnsName,
+          address,
+          error,
+          chainId,
+          network,
+        }),
+      );
     }
   };
 }
