@@ -266,7 +266,6 @@ async function estimateGasLimitForSend({
       );
       return addHexPrefix(estimateWithBuffer);
     }
-    log.error(error);
     throw error;
   }
 }
