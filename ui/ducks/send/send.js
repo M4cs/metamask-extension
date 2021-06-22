@@ -176,8 +176,11 @@ async function estimateGasLimitForSend({
   sendToken,
   to,
   data,
-  blockGasLimit = MIN_GAS_LIMIT_HEX,
+  ...options
 }) {
+  // blockGasLimit may be a falsy, but defined, value when we receive it from
+  // state, so we use logical or to fall back to MIN_GAS_LIMIT_HEX.
+  const blockGasLimit = options.blockGasLimit || MIN_GAS_LIMIT_HEX;
   // The parameters below will be sent to our background process to estimate
   // how much gas will be used for a transaction. That background process is
   // located in tx-gas-utils.js in the transaction controller folder.
