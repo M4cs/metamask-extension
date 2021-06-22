@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import abi from 'human-standard-token-abi';
-import log from 'loglevel';
 import contractMap from '@metamask/contract-metadata';
 import BigNumber from 'bignumber.js';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
