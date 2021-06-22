@@ -1000,10 +1000,12 @@ const slice = createSlice({
         }
       })
       .addCase(SET_ESTIMATE_SOURCE, (state, action) => {
-        if (action.value === GAS_SOURCE.ETHGASPRICE) {
-          slice.caseReducers.useInlineGasFields(state);
-        } else {
-          slice.caseReducers.useBasicGasFields(state);
+        if (state.gas.mode !== GAS_INPUT_MODES.CUSTOM) {
+          if (action.value === GAS_SOURCE.ETHGASPRICE) {
+            slice.caseReducers.useInlineGasFields(state);
+          } else {
+            slice.caseReducers.useBasicGasFields(state);
+          }
         }
       });
   },
