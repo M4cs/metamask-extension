@@ -93,10 +93,10 @@ const name = 'send';
  * The Stages that the send slice can be in
  * 1. UNINITIALIZED - The send state is idle, and hasn't yet fetched required
  *  data for gasPrice and gasLimit estimations, etc.
- * 1. ADD_RECIPIENT - The user is selecting which address to send an asset to
- * 2. DRAFT - The send form is shown for a transaction yet to be sent to the
+ * 2. ADD_RECIPIENT - The user is selecting which address to send an asset to
+ * 3. DRAFT - The send form is shown for a transaction yet to be sent to the
  *  Transaction Controller.
- * 3. EDIT - The send form is shown for a transaction already submitted to the
+ * 4. EDIT - The send form is shown for a transaction already submitted to the
  *  Transaction Controller but not yet confirmed. This happens when a
  *  confirmation is shown for a transaction and the 'edit' button in the header
  *  is clicked.
@@ -388,8 +388,8 @@ export const initializeSendState = createAsyncThunk(
       });
       gasLimit ??= estimatedGasLimit;
     }
-    // We have to keep the customGas setting in sync with the gasLimit when
-    // changing it due to side effects of user actions.
+    // We have to keep the gas slice in sync with the draft send transaction
+    // so that it'll be initialized correctly if the gas modal is opened.
     await thunkApi.dispatch(setCustomGasLimit(gasLimit));
     // We must determine the balance of the asset that the transaction will be
     // sending. This is done by referencing the native balance on the account
