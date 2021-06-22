@@ -1,5 +1,7 @@
 import { connect } from 'react-redux';
-import { getIsMainnet, getPreferences, getShouldShowFiat } from '../../../selectors';
+import {
+  getShouldShowFiat,
+} from '../../../selectors';
 import { getNativeCurrency } from '../../../ducks/metamask/metamask';
 import { getHexGasTotal } from '../../../helpers/utils/confirm-tx.util';
 import { sumHexes } from '../../../helpers/utils/transactions.util';
@@ -11,7 +13,7 @@ const mapStateToProps = (state, ownProps) => {
     txParams: { gas, gasPrice, value } = {},
     txReceipt: { gasUsed } = {},
   } = transaction;
-  
+
   const gasLimit = typeof gasUsed === 'string' ? gasUsed : gas;
 
   const hexGasTotal =

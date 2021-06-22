@@ -27,7 +27,6 @@ import {
   getCurrentEthBalance,
   getIsMainnet,
   getSendToken,
-  getPreferences,
   getBasicGasEstimateLoadingStatus,
   getCustomGasLimit,
   getCustomGasPrice,
