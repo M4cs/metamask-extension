@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useLocation } from 'react-router-dom';
 import {
+  getIsUsingMyAccountForRecipientSearch,
   getRecipient,
   getRecipientUserInput,
   getSendStage,
@@ -30,6 +31,9 @@ export default function SendTransactionScreen() {
   const chainId = useSelector(getCurrentChainId);
   const stage = useSelector(getSendStage);
   const gasIsExcessive = useSelector(sendSliceIsCustomPriceExcessive);
+  const isUsingMyAccountsForRecipientSearch = useSelector(
+    getIsUsingMyAccountForRecipientSearch,
+  );
   const recipient = useSelector(getRecipient);
   const showHexData = useSelector(getSendHexDataFeatureFlagState);
   const userInput = useSelector(getRecipientUserInput);
@@ -92,6 +96,7 @@ export default function SendTransactionScreen() {
         onValidAddressTyped={(address) =>
           dispatch(updateRecipient({ address, nickname: '' }))
         }
+        internalSearch={isUsingMyAccountsForRecipientSearch}
         selectedAddress={recipient.address}
         selectedName={recipient.nickname}
         onPaste={(text) => updateRecipient({ address: text, nickname: '' })}
