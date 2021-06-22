@@ -92,7 +92,11 @@ const AssetListItem = ({
 
   return (
     <ListItem
-      className={classnames('asset-list-item', className)}
+      className={classnames(
+        'asset-list-item',
+        className,
+        secondary ? '' : 'no-subtitle',
+      )}
       data-testid={dataTestId}
       title={
         <button
