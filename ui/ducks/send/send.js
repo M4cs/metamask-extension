@@ -495,6 +495,8 @@ export const initialState = {
     nickname: '',
     // Error to display on the address field
     error: null,
+    // Warning to display on the address field
+    warning: null,
   },
 };
 
