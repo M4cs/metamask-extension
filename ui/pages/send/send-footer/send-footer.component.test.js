@@ -32,7 +32,6 @@ describe('SendFooter Component', () => {
         resetSendState={propsMethodSpies.resetSendState}
         disabled
         history={historySpies}
-        inError={false}
         sign={propsMethodSpies.sign}
         to="mockTo"
         toAccounts={['mockAccount']}
@@ -116,7 +115,6 @@ describe('SendFooter Component', () => {
           gasPrice="mockGasPrice"
           gasTotal="mockGasTotal"
           history={historySpies}
-          inError={false}
           sendToken={{ mockProp: 'mockSendTokenProp' }}
           sign={propsMethodSpies.sign}
           to="mockTo"

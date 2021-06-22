@@ -9,7 +9,6 @@ export default class SendFooter extends Component {
     resetSendState: PropTypes.func,
     disabled: PropTypes.bool.isRequired,
     history: PropTypes.object,
-    inError: PropTypes.bool,
     sign: PropTypes.func,
     to: PropTypes.string,
     toAccounts: PropTypes.array,
@@ -61,9 +60,9 @@ export default class SendFooter extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { inError, sendErrors } = this.props;
+    const { disabled, sendErrors } = this.props;
     const { metricsEvent } = this.context;
-    if (!prevProps.inError && inError) {
+    if (!prevProps.disabled && disabled && Object.keys(sendErrors).length > 0) {
       const errorField = Object.keys(sendErrors).find((key) => sendErrors[key]);
       const errorMessage = sendErrors[errorField];
 

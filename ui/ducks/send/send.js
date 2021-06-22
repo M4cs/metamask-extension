@@ -1443,10 +1443,6 @@ export function isSendFormInvalid(state) {
   return state[name].status === SEND_STATUSES.INVALID;
 }
 
-export function isSendFormInError(state) {
-  return Boolean(state[name].amount.error || state[name].gas.error);
-}
-
 export function getSendStage(state) {
   return state[name].stage;
 }

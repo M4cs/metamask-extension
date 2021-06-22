@@ -9,7 +9,6 @@ import {
   getGasPrice,
   getSendTo,
   getSendErrors,
-  isSendFormInError,
   isSendFormInvalid,
   signTransaction,
 } from '../../../ducks/send';
@@ -41,7 +40,6 @@ function mapStateToProps(state) {
       : 'custom';
 
   return {
-    inError: isSendFormInError(state),
     disabled: isSendFormInvalid(state),
     to: getSendTo(state),
     toAccounts: getSendToAccounts(state),
