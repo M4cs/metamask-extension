@@ -12,7 +12,7 @@ import { useMetricEvent } from '../../../../../hooks/useMetricEvent';
 
 export default function AmountMaxButton() {
   const buttonDataLoading = useSelector(getBasicGasEstimateLoadingStatus);
-  const inError = useSelector(isSendFormInvalid);
+  const isDraftTransactionInvalid = useSelector(isSendFormInvalid);
   const maxModeOn = useSelector(getSendMaxModeState);
   const dispatch = useDispatch();
   const trackClickedMax = useMetricEvent({
@@ -32,12 +32,15 @@ export default function AmountMaxButton() {
   return (
     <button
       className="send-v2__amount-max"
-      onClick={buttonDataLoading || inError ? null : onMaxClick}
+      onClick={
+        buttonDataLoading || isDraftTransactionInvalid ? null : onMaxClick
+      }
     >
       <input type="checkbox" checked={maxModeOn} readOnly />
       <div
         className={classnames('send-v2__amount-max__button', {
-          'send-v2__amount-max__button__disabled': buttonDataLoading || inError,
+          'send-v2__amount-max__button__disabled':
+            buttonDataLoading || isDraftTransactionInvalid,
         })}
       >
         {t('max')}
