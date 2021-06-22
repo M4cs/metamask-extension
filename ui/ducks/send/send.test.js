@@ -147,6 +147,10 @@ describe('Send Slice', () => {
           account: {
             balance: '0x56bc75e2d63100000',
           },
+          asset: {
+            balance: '0x56bc75e2d63100000',
+            type: ASSET_TYPES.NATIVE,
+          },
           gas: {
             gasTotal: '0x1319718a5000', // 21000000000000
             gasLimit: '0x5208', // 21000

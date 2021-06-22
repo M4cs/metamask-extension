@@ -596,6 +596,7 @@ const slice = createSlice({
       ) {
         slice.caseReducers.updateAmountToMax(state);
       }
+      slice.caseReducers.validateAmountField(state);
       slice.caseReducers.validateGasField(state);
       // validate send state
       slice.caseReducers.validateSendState(state);
@@ -815,7 +816,8 @@ const slice = createSlice({
       // being sent. If the user has enough to cover cost of gas but not gas
       // + amount then the error will be displayed on the amount field.
       const insufficientFunds = !isBalanceSufficient({
-        amount: '0x0',
+        amount:
+          state.asset.type === ASSET_TYPES.NATIVE ? state.amount.value : '0x0',
         balance: state.account.balance,
         gasTotal: state.gas.gasTotal ?? '0x0',
       });
