@@ -386,7 +386,7 @@ export const initializeSendState = createAsyncThunk(
         value: amount.value,
         data: draftTransaction.userInputHexData,
       });
-      gasLimit ??= estimatedGasLimit;
+      gasLimit = estimatedGasLimit || gasLimit;
     }
     // We have to keep the gas slice in sync with the draft send transaction
     // so that it'll be initialized correctly if the gas modal is opened.
