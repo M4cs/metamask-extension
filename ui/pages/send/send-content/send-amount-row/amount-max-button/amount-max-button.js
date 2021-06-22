@@ -32,9 +32,8 @@ export default function AmountMaxButton() {
   return (
     <button
       className="send-v2__amount-max"
-      onClick={
-        buttonDataLoading || isDraftTransactionInvalid ? null : onMaxClick
-      }
+      disabled={buttonDataLoading || isDraftTransactionInvalid}
+      onClick={onMaxClick}
     >
       <input type="checkbox" checked={maxModeOn} readOnly />
       <div
