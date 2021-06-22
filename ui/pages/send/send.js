@@ -72,7 +72,6 @@ export default function SendTransactionScreen() {
     content = (
       <>
         <SendContent
-          key="send-content"
           showHexData={showHexData}
           gasIsExcessive={gasIsExcessive}
         />
