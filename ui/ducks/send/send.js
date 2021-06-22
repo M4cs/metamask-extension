@@ -901,10 +901,11 @@ const slice = createSlice({
           state.stage === SEND_STAGES.EDIT &&
           action.payload.account.address === state.account.address
         ) {
-          // This event occurs when the user selects a new account from the
-          // account menu, or the currently active account's balance updates.
+          // This event occurs when the user's account details update due to
+          // background state changes. If the account that is being updated is
+          // the current from account on the edit flow we need to update
+          // the balance for the account and revalidate the send state.
           state.account.balance = action.payload.account.balance;
-          state.account.address = action.payload.account.address;
           // We need to update the asset balance if the asset is the native
           // network asset. Once we update the balance we recompute error state.
           if (state.asset.type === ASSET_TYPES.NATIVE) {
