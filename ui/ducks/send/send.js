@@ -774,6 +774,7 @@ const slice = createSlice({
       }
     },
     updateRecipientSearchMode: (state, action) => {
+      state.recipient.userInput = '';
       state.recipient.mode = action.payload;
     },
     resetSendState: () => initialState,
