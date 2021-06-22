@@ -921,10 +921,7 @@ const slice = createSlice({
         // to check to see if an entry exists for the current address or if the
         // entry changed.
         const { addressBook } = action.payload;
-        if (
-          addressBook[state.recipient.address] &&
-          state.recipient.nickname.length === 0
-        ) {
+        if (addressBook[state.recipient.address]?.name) {
           state.recipient.nickname = addressBook[state.recipient.address].name;
         }
       })
