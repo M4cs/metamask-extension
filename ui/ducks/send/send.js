@@ -247,7 +247,7 @@ async function estimateGasLimitForSend({
     // execution on the node and return an estimate of gasLimit
     const estimatedGasLimit = await estimateGas(paramsForGasEstimate);
     const estimateWithBuffer = addGasBuffer(
-      estimatedGasLimit.toString(16),
+      estimatedGasLimit,
       blockGasLimit,
       1.5,
     );
