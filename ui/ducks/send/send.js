@@ -189,9 +189,9 @@ async function estimateGasLimitForSend({
   if (sendToken) {
     if (!to) {
       // if no to address is provided, we cannot generate the token transfer
-      // hexData, which is the core component to our background process that
-      // estimates gasLimit. We must use our best guess, which is represented
-      // in the gas shared constants.
+      // hexData. hexData in a transaction largely dictates how much gas will
+      // be consumed by a transaction. We must use our best guess, which is
+      // represented in the gas shared constants.
       return GAS_LIMITS.BASE_TOKEN_ESTIMATE;
     }
     paramsForGasEstimate.value = '0x0';
