@@ -202,32 +202,9 @@ export default class TransactionController extends EventEmitter {
   @emits ${txMeta.id}:unapproved
   */
   addTransaction(txMeta) {
-    const {
-      type,
-      status,
-      chainId,
-      origin: referrer,
-      txParams: { gasPrice },
-      metamaskNetworkId: network,
-    } = txMeta;
-    const source = referrer === 'metamask' ? 'user' : 'dapp';
-
     this.txStateManager.addTransaction(txMeta);
     this.emit(`${txMeta.id}:unapproved`, txMeta);
-
-    this._trackMetaMetricsEvent({
-      event: 'Transaction Added',
-      category: 'Transactions',
-      sensitiveProperties: {
-        type,
-        status,
-        gasPrice,
-        referrer,
-        source,
-        network,
-        chain_id: chainId,
-      },
-    });
+    this._trackTxEvent(txMeta, 'Transaction Added');
   }
 
   /**
@@ -607,12 +584,13 @@ export default class TransactionController extends EventEmitter {
       // sign transaction
       const rawTx = await this.signTransaction(txId);
       await this.publishTransaction(txId, rawTx);
+      this._trackTxEvent(txMeta, 'Transaction Approved');
       // must set transaction to submitted/failed before releasing lock
       nonceLock.releaseLock();
     } catch (err) {
       // this is try-catch wrapped so that we can guarantee that the nonceLock is released
       try {
-        this.txStateManager.setTxStatusFailed(txId, err);
+        this._failTransaction(txId, err);
       } catch (err2) {
         log.error(err2);
       }
@@ -695,6 +673,9 @@ export default class TransactionController extends EventEmitter {
     this.setTxHash(txId, txHash);
 
     this.txStateManager.setTxStatusSubmitted(txId);
+
+    const { gas } = txMeta.txParams;
+    this._trackTxEvent(txMeta, 'Transaction Submitted', { gas });
   }
 
   /**
@@ -726,6 +707,7 @@ export default class TransactionController extends EventEmitter {
       };
       this.txStateManager.setTxStatusConfirmed(txId);
       this._markNonceDuplicatesDropped(txId);
+      this._trackTxEvent(txMeta, 'Transaction Finalized');
 
       this.txStateManager.updateTransaction(
         txMeta,
@@ -760,7 +742,9 @@ export default class TransactionController extends EventEmitter {
     @returns {Promise<void>}
   */
   async cancelTransaction(txId) {
+    const txMeta = this.txStateManager.getTransaction(txId);
     this.txStateManager.setTxStatusRejected(txId);
+    this._trackTxEvent(txMeta, 'Transaction Rejected');
   }
 
   /**
@@ -843,7 +827,7 @@ export default class TransactionController extends EventEmitter {
               txMeta,
               'failed to estimate gas during boot cleanup.',
             );
-            this.txStateManager.setTxStatusFailed(txMeta.id, error);
+            this._failTransaction(txMeta.id, error);
           });
       });
 
@@ -857,7 +841,7 @@ export default class TransactionController extends EventEmitter {
         const txSignError = new Error(
           'Transaction found as "approved" during boot - possibly stuck during signing',
         );
-        this.txStateManager.setTxStatusFailed(txMeta.id, txSignError);
+        this._failTransaction(txMeta.id, txSignError);
       });
   }
 
@@ -877,17 +861,15 @@ export default class TransactionController extends EventEmitter {
         'transactions/pending-tx-tracker#event: tx:warning',
       );
     });
-    this.pendingTxTracker.on(
-      'tx:failed',
-      this.txStateManager.setTxStatusFailed.bind(this.txStateManager),
-    );
+    this.pendingTxTracker.on('tx:failed', (txId, error) => {
+      this._failTransaction(txId, error);
+    });
     this.pendingTxTracker.on('tx:confirmed', (txId, transactionReceipt) =>
       this.confirmTransaction(txId, transactionReceipt),
     );
-    this.pendingTxTracker.on(
-      'tx:dropped',
-      this.txStateManager.setTxStatusDropped.bind(this.txStateManager),
-    );
+    this.pendingTxTracker.on('tx:dropped', (txId) => {
+      this._dropTransaction(txId);
+    });
     this.pendingTxTracker.on('tx:block-update', (txMeta, latestBlockNumber) => {
       if (!txMeta.firstRetryBlockNumber) {
         txMeta.firstRetryBlockNumber = latestBlockNumber;
@@ -997,7 +979,7 @@ export default class TransactionController extends EventEmitter {
         txMeta,
         'transactions/pending-tx-tracker#event: tx:confirmed reference to confirmed txHash with same nonce',
       );
-      this.txStateManager.setTxStatusDropped(otherTxMeta.id);
+      this._dropTransaction(otherTxMeta.id);
     });
   }
 
@@ -1089,5 +1071,44 @@ export default class TransactionController extends EventEmitter {
         });
       }
     }
+  }
+
+  _trackTxEvent(txMeta, event, extraOpts = {}) {
+    const {
+      type,
+      status,
+      chainId,
+      origin: referrer,
+      txParams: { gasPrice },
+      metamaskNetworkId: network,
+    } = txMeta;
+    const source = referrer === 'metamask' ? 'user' : 'dapp';
+
+    this._trackMetaMetricsEvent({
+      event,
+      category: 'Transactions',
+      sensitiveProperties: {
+        type,
+        status,
+        gasPrice,
+        referrer,
+        source,
+        network,
+        chain_id: chainId,
+        ...extraOpts,
+      },
+    });
+  }
+
+  _failTransaction(txId, error) {
+    this.txStateManager.setTxStatusFailed(txId, error);
+    const txMeta = this.txStateManager.getTransaction(txId);
+    this._trackTxEvent(txMeta, 'Transaction Finalized');
+  }
+
+  _dropTransaction(txId) {
+    this.txStateManager.setTxStatusDropped(txId);
+    const txMeta = this.txStateManager.getTransaction(txId);
+    this._trackTxEvent(txMeta, 'Transaction Finalized');
   }
 }
