@@ -206,7 +206,7 @@ async function estimateGasLimitForSend({
   } else {
     if (!data) {
       // eth.getCode will return the compiled smart contract code at the
-      // address if this returns 0x, 0x0 or a nullish value then the address
+      // address. If this returns 0x, 0x0 or a nullish value then the address
       // is an externally owned account (NOT a contract account). For these
       // types of transactions the gasLimit will always be 21,000 or 0x5208
       const contractCode = Boolean(to) && (await global.eth.getCode(to));
