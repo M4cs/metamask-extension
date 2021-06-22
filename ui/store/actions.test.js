@@ -1,7 +1,6 @@
 import sinon from 'sinon';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import EthQuery from 'eth-query';
 import enLocale from '../../app/_locales/en/messages.json';
 import MetaMaskController from '../../app/scripts/metamask-controller';
 import { TRANSACTION_STATUSES } from '../../shared/constants/transaction';
@@ -831,58 +830,6 @@ describe('Actions', () => {
       );
 
       expect(store.getActions()).toStrictEqual(expectedActions);
-    });
-  });
-
-  describe('#signTx', () => {
-    beforeEach(() => {
-      global.ethQuery = sinon.createStubInstance(EthQuery);
-    });
-
-    afterEach(() => {
-      sinon.restore();
-    });
-
-    it('calls sendTransaction in global ethQuery', async () => {
-      const store = mockStore();
-
-      actions._setBackgroundConnection(background);
-
-      await store.dispatch(actions.signTx());
-
-      expect(global.ethQuery.sendTransaction.callCount).toStrictEqual(1);
-    });
-
-    it('errors in when sendTransaction throws', async () => {
-      const store = mockStore();
-      const expectedActions = [
-        { type: 'SHOW_LOADING_INDICATION', value: undefined },
-        { type: 'DISPLAY_WARNING', value: 'error' },
-        { type: 'HIDE_LOADING_INDICATION' },
-        { type: 'SHOW_CONF_TX_PAGE', id: undefined },
-      ];
-
-      global.ethQuery.sendTransaction.callsFake((_, callback) => {
-        callback(new Error('error'));
-      });
-
-      actions._setBackgroundConnection(background);
-
-      await store.dispatch(actions.signTx());
-      expect(store.getActions()).toStrictEqual(expectedActions);
-    });
-  });
-
-  describe('#signTokenTx', () => {
-    it('calls eth.contract', async () => {
-      global.eth = {
-        contract: sinon.stub(),
-      };
-
-      const store = mockStore();
-
-      await store.dispatch(actions.signTokenTx());
-      expect(global.eth.contract.callCount).toStrictEqual(1);
     });
   });
 

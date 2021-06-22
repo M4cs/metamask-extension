@@ -1,4 +1,3 @@
-import abi from 'human-standard-token-abi';
 import pify from 'pify';
 import log from 'loglevel';
 import { capitalize, isEqual } from 'lodash';
@@ -622,39 +621,10 @@ export function signTypedMsg(msgData) {
   };
 }
 
-export function signTx(txData) {
-  return async (dispatch) => {
-    dispatch(showLoadingIndication());
-    global.ethQuery.sendTransaction(txData, (err) => {
-      if (err) {
-        dispatch(displayWarning(err.message));
-      }
-    });
-    dispatch(hideLoadingIndication());
-    dispatch(showConfTxPage());
-  };
-}
-
 export function updateCustomNonce(value) {
   return {
     type: actionConstants.UPDATE_CUSTOM_NONCE,
     value,
-  };
-}
-
-export function signTokenTx(tokenAddress, toAddress, amount, txData) {
-  return async (dispatch) => {
-    dispatch(showLoadingIndication());
-
-    try {
-      const token = global.eth.contract(abi).at(tokenAddress);
-      token.transfer(toAddress, addHexPrefix(amount), txData);
-      dispatch(showConfTxPage());
-      dispatch(hideLoadingIndication());
-    } catch (error) {
-      dispatch(hideLoadingIndication());
-      dispatch(displayWarning(error.message));
-    }
   };
 }
 
