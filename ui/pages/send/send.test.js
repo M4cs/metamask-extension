@@ -161,7 +161,7 @@ describe('Send Page', () => {
       ).toBeTruthy();
     });
 
-    it('should  render the footer', () => {
+    it('should render the footer', () => {
       const store = configureMockStore(middleware)({
         ...baseStore,
         send: { ...baseStore.send, stage: SEND_STAGES.DRAFT },
