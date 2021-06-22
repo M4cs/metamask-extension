@@ -6,7 +6,7 @@ import UserPreferencedTokenInput from '../../../../components/app/user-preferenc
 import { ASSET_TYPES } from '../../../../ducks/send';
 import SendAmountRow from './send-amount-row.component';
 
-import AmountMaxButton from './amount-max-button/amount-max-button.component';
+import AmountMaxButton from './amount-max-button/amount-max-button';
 
 describe('SendAmountRow Component', () => {
   describe('updateAmount', () => {

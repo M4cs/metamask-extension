@@ -5,7 +5,7 @@ import thunk from 'redux-thunk';
 import { fireEvent } from '@testing-library/react';
 import { initialState, SEND_STATUSES } from '../../../../../ducks/send';
 import { renderWithProvider } from '../../../../../../test/jest';
-import AmountMaxButton from './amount-max-button.component';
+import AmountMaxButton from './amount-max-button';
 
 const middleware = [thunk];
 
