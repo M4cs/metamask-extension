@@ -87,7 +87,6 @@ function shallowRenderSendAmountRow() {
         details: { address: 'mockTokenAddress' },
       }}
       updateSendAmount={updateSendAmount}
-      updateGas={() => undefined}
     />,
     { context: { t: (str) => `${str}_t` } },
   );
